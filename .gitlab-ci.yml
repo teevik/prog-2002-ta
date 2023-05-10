@@ -1,0 +1,3 @@
+include:
+  - project: 'course/prog2002/gitlab-ci'
+    file: '.gitlab-ci.yml'
