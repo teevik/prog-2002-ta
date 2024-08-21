@@ -15,7 +15,7 @@
           # cmake and cplusplus
           cmake
           ninja
-          clang
+          # clang
 
           # x11
           xorg.libX11
@@ -30,6 +30,7 @@
           wayland
           wayland-scanner
           libxkbcommon
+          clang-tools
         ];
 
         LD_LIBRARY_PATH = with pkgs;
