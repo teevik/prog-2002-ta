@@ -9,6 +9,7 @@
 }:
 clangStdenv.mkDerivation {
   name = target;
+  allowSubstitutes = false;
 
   src = lib.sourceByRegex ./. [
     "^labs.*"
