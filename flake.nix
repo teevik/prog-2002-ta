@@ -7,39 +7,29 @@
   outputs = inputs@{ flake-parts, ... }: flake-parts.lib.mkFlake { inherit inputs; } {
     systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
-    perSystem = { pkgs, ... }: {
-      devShells.default = pkgs.mkShell {
-        packages = with pkgs; [
-          pkg-config
+    perSystem = { pkgs, lib, ... }:
+      let
+        package = pkgs.callPackage ./package.nix;
+        makePackages = targets: lib.genAttrs targets (target: package { target = target; });
+      in
+      {
+        packages = makePackages [ "lab1" ];
 
-          # cmake and cplusplus
-          cmake
-          ninja
-          # clang
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            cmake
+            clang-tools
 
-          # x11
-          xorg.libX11
-          xorg.libXrandr
-          xorg.libXinerama
-          xorg.libXcursor
-          xorg.libXi
-
-          # opengl
-          libGL
-
-          wayland
-          wayland-scanner
-          libxkbcommon
-          clang-tools
-        ];
-
-        LD_LIBRARY_PATH = with pkgs;
-          lib.makeLibraryPath [
-            wayland
-            libGL
-            libxkbcommon
+            glfw
+            glm
+            glew-egl
           ];
+
+          LD_LIBRARY_PATH = with pkgs;
+            lib.makeLibraryPath [
+              wayland
+            ];
+        };
       };
-    };
   };
 }

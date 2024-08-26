@@ -1,19 +1,17 @@
-#include <cassert>
-#include <filesystem>
-#include <optional>
-#include <vector>
-
-#define GLFW_INCLUDE_NONE
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <glad/glad.h>
 
+#include <cassert>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <glm/glm.hpp>
 #include <ios>
 #include <iostream>
+#include <optional>
 #include <span>
 #include <string>
+#include <vector>
 
 using std::filesystem::path;
 
@@ -209,9 +207,14 @@ class Window {
 
     glfwMakeContextCurrent(glfw_window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    auto glew_error = glewInit();
+    if (glew_error != GLEW_OK) {
+      auto error_message =
+          reinterpret_cast<const char*>(glewGetErrorString(glew_error));
+
       glfwTerminate();
-      throw std::runtime_error("Failed to initialize GLAD.");
+      throw std::runtime_error(std::string("Failed to initialize GLEW: ") +
+                               error_message);
     }
 
     glEnable(GL_DEBUG_OUTPUT);
@@ -238,7 +241,11 @@ class Window {
   bool get_key(int key) const { return glfwGetKey(glfw_window, key); }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+  path program_path(argv[0]);
+  path program_folder = program_path.parent_path();
+  path assets_folder = program_folder / "assets";
+
   // Defer: glfwTerminate()
   Window window(800, 600, "Lab 1");
 
@@ -255,8 +262,8 @@ int main() {
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, nullptr);
   glEnableVertexAttribArray(0);
 
-  auto vertex_shader_path = path(ASSETS_DIR) / "vertex.glsl";
-  auto fragment_shader_path = path(ASSETS_DIR) / "fragment.glsl";
+  auto vertex_shader_path = assets_folder / "vertex.glsl";
+  auto fragment_shader_path = assets_folder / "fragment.glsl";
   Shader shader(vertex_shader_path, fragment_shader_path);
   shader.bind();
 
