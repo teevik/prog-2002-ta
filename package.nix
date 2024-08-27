@@ -1,6 +1,7 @@
 { lib
 , clangStdenv
 , cmake
+, ninja
 , libGL
 , glfw
 , glew-egl
@@ -16,7 +17,7 @@ clangStdenv.mkDerivation {
     "CMakeLists.txt"
   ];
 
-  nativeBuildInputs = [ cmake ];
+  nativeBuildInputs = [ cmake ninja ];
   buildInputs = [
     libGL
     glfw
@@ -25,11 +26,11 @@ clangStdenv.mkDerivation {
   ];
 
   configurePhase = /* bash */ ''
-    cmake .
+    cmake -G Ninja .
   '';
 
   buildPhase = /* bash */ ''
-    make ${target}
+    ninja ${target}
   '';
 
   installPhase = /* bash */ ''
