@@ -4,7 +4,7 @@ project(PROG2002)
 
 # Set the C++ standard to C++17 for all targets in the project. This variable denotes
 # the desired C++ standard version (e.g., 11, 14, 17, 20).
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # Enforce that the specified C++ standard is mandatory. If set to ON, then it's a
 # requirement to have C++17. If the compiler does not support it, CMake will fail.
