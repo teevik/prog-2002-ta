@@ -36,5 +36,6 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
 
+add_subdirectory(framework)
 add_subdirectory(labs/lab1)
 

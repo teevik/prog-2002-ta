@@ -14,6 +14,7 @@ clangStdenv.mkDerivation {
 
   src = lib.sourceByRegex ./. [
     "^labs.*"
+    "^framework.*"
     "CMakeLists.txt"
   ];
 

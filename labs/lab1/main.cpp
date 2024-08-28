@@ -1,192 +1,22 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <framework/buffer.h>
+#include <framework/shader.h>
 #include <glm/glm.hpp>
-#include <cassert>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
-#include <fstream>
 #include <ios>
 #include <iostream>
-#include <memory>
 #include <optional>
 #include <ranges>
 #include <span>
 #include <string>
 #include <vector>
 
+using framework::Shader, framework::Buffer, framework::BufferType,
+  framework::BufferUsage;
 using std::filesystem::path;
-
-enum class BufferType {
-  Vertex = GL_ARRAY_BUFFER,
-  Index = GL_ELEMENT_ARRAY_BUFFER,
-};
-
-enum class BufferUsage {
-  Static = GL_STATIC_DRAW,
-  Dynamic = GL_DYNAMIC_DRAW,
-  Stream = GL_STREAM_DRAW,
-};
-
-struct Buffer {
-  uint32_t id = 0;
-  BufferType type;
-
-  template <typename T>
-  Buffer(BufferType type, BufferUsage usage, std::span<T> data) : type(type) {
-    glGenBuffers(1, &id);
-
-    glBindBuffer(static_cast<GLenum>(type), id);
-    glBufferData(
-      static_cast<GLenum>(type),
-      sizeof(T) * data.size(),
-      data.data(),
-      static_cast<GLenum>(usage)
-    );
-  };
-
-  // Move constructor
-  Buffer(Buffer &&object) noexcept : id(object.id), type(object.type) {
-    object.id = 0;
-  }
-
-  ~Buffer() {
-    if (id) glDeleteBuffers(1, &id);
-  }
-
-  void bind() const {
-    glBindBuffer(static_cast<GLenum>(type), id);
-  }
-};
-
-std::string read_file_to_string(const std::filesystem::path path) {
-  std::ifstream file(path);
-  std::string content(
-    (std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>())
-  );
-
-  return content;
-}
-
-enum class ShaderType {
-  Vertex = GL_VERTEX_SHADER,
-  Fragment = GL_FRAGMENT_SHADER,
-};
-
-std::optional<uint32_t> compile_shader(
-  const std::string &source, ShaderType shaderType
-) {
-  auto shader_id = glCreateShader(static_cast<GLenum>(shaderType));
-
-  const char *raw_source = source.c_str();
-  glShaderSource(shader_id, 1, &raw_source, nullptr);
-  glCompileShader(shader_id);
-
-  int32_t shader_did_compile;
-  glGetShaderiv(shader_id, GL_COMPILE_STATUS, &shader_did_compile);
-
-  if (!shader_did_compile) {
-    int32_t errorLength;
-    glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &errorLength);
-
-    auto errorMessage = std::make_unique<char[]>(errorLength);
-    glGetShaderInfoLog(
-      shader_id, errorLength, &errorLength, errorMessage.get()
-    );
-
-    std::cerr << "Failed to compile shader!" << std::endl;
-    std::cerr << errorMessage.get() << std::endl;
-
-    glDeleteShader(shader_id);
-
-    return std::nullopt;
-  }
-
-  return shader_id;
-};
-
-// TODO: Shader hot reload?
-struct Shader {
-  uint32_t id = 0;
-
-  Shader(
-    std::filesystem::path vertex_shader_file,
-    std::filesystem::path fragment_shader_file
-  ) {
-    id = glCreateProgram();
-
-    auto vertex_shader_source = read_file_to_string(vertex_shader_file);
-    auto fragment_shader_source = read_file_to_string(fragment_shader_file);
-
-    auto vertex_shader =
-      compile_shader(vertex_shader_source, ShaderType::Vertex).value();
-    auto fragment_shader =
-      compile_shader(fragment_shader_source, ShaderType::Fragment).value();
-
-    glAttachShader(id, vertex_shader);
-    glAttachShader(id, fragment_shader);
-
-    glLinkProgram(id);
-    glValidateProgram(id);
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
-  };
-
-  Shader(Shader &&shader) noexcept : id(shader.id) {
-    shader.id = 0;
-  }
-
-  ~Shader() {
-    if (id) glDeleteProgram(id);
-  }
-
-  void bind() const {
-    glUseProgram(id);
-  }
-
-  void uploadUniformBool1(const std::string &name, bool value) const {
-    int32_t location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform1i(id, location, value);
-  }
-
-  void uploadUniformInt1(const std::string &name, int value) const {
-    int32_t location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform1i(id, location, value);
-  }
-
-  void uploadUniformInt2(const std::string &name, glm::ivec2 value) const {
-    auto location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform2i(id, location, value.x, value.y);
-  }
-
-  void uploadUniformFloat1(const std::string &name, float value) const {
-    int32_t location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform1f(id, location, value);
-  }
-
-  void uploadUniformFloat3(const std::string &name, glm::vec3 value) const {
-    int32_t location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform3f(id, location, value.r, value.g, value.b);
-  }
-
-  void uploadUniformFloat4(const std::string &name, glm::vec4 value) const {
-    int32_t location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniform4f(id, location, value.r, value.g, value.b, value.a);
-  }
-
-  void uploadUniformMatrix4(const std::string &name, glm::mat4 value) const {
-    auto location = glGetUniformLocation(id, name.c_str());
-    assert(location != -1);
-    glProgramUniformMatrix4fv(id, location, 1, false, &value[0][0]);
-  }
-};
 
 enum class CullFace {
   Nothing = GL_NONE,
