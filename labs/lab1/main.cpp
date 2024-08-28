@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <ios>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
@@ -178,6 +179,244 @@ class Shader {
     assert(location != -1);
     glProgramUniformMatrix4fv(id, location, 1, false, &value[0][0]);
   }
+};
+
+enum class CullFace {
+  Nothing = GL_NONE,
+  Front = GL_FRONT,
+  Back = GL_BACK,
+};
+
+enum class FrontFaceOrder {
+  Clockwise = GL_CW,
+  CounterClockwise = GL_CCW,
+};
+
+enum class DepthTest {
+  Never = GL_NEVER,
+  Less = GL_LESS,
+  Equal = GL_EQUAL,
+  LessOrEqual = GL_LEQUAL,
+  Greater = GL_GREATER,
+  NotEqual = GL_NOTEQUAL,
+  GreaterOrEqual = GL_GEQUAL,
+  Always = GL_ALWAYS,
+};
+
+enum class Equation {
+  Add = GL_FUNC_ADD,
+  Subtract = GL_FUNC_SUBTRACT,
+  ReverseSubtract = GL_FUNC_REVERSE_SUBTRACT,
+};
+
+enum class BlendFactor {
+  Zero = GL_ZERO,
+  One = GL_ONE,
+  SourceColor = GL_SRC_COLOR,
+  OneMinusSourceColor = GL_ONE_MINUS_SRC_COLOR,
+  DestinationColor = GL_DST_COLOR,
+  OneMinusDestinationColor = GL_ONE_MINUS_DST_COLOR,
+  SourceAlpha = GL_SRC_ALPHA,
+  OneMinusSourceAlpha = GL_ONE_MINUS_SRC_ALPHA,
+  DestinationAlpha = GL_DST_ALPHA,
+  OneMinusDestinationAlpha = GL_ONE_MINUS_DST_ALPHA,
+};
+
+struct BlendState {
+  Equation equation;
+  BlendFactor source_factor;
+  BlendFactor destination_factor;
+};
+
+enum class StencilOperation {
+  Keep = GL_KEEP,
+  Zero = GL_ZERO,
+  Replace = GL_REPLACE,
+  IncrementClamp = GL_INCR,
+  IncrementWrap = GL_INCR_WRAP,
+  DecrementClamp = GL_DECR,
+  DecrementWrap = GL_DECR_WRAP,
+  Invert = GL_INVERT,
+};
+
+enum class CompareFunction {
+  Never = GL_NEVER,
+  Less = GL_LESS,
+  Equal = GL_EQUAL,
+  LessOrEqual = GL_LEQUAL,
+  Greater = GL_GREATER,
+  NotEqual = GL_NOTEQUAL,
+  GreaterOrEqual = GL_GEQUAL,
+  Always = GL_ALWAYS,
+};
+
+struct StencilFaceState {
+  StencilOperation fail_operation;
+  StencilOperation depth_fail_operation;
+  StencilOperation pass_operation;
+  CompareFunction test_function;
+  int32_t test_reference;
+  uint32_t test_mask;
+  uint32_t write_mask;
+};
+
+struct StencilState {
+  StencilFaceState front_face;
+  StencilFaceState back_face;
+};
+
+enum class PrimitiveType {
+  Triangles = GL_TRIANGLES,
+  Lines = GL_LINES,
+  Points = GL_POINTS,
+};
+
+struct PipelineOptions {
+  CullFace cull_face = CullFace::Nothing;
+  FrontFaceOrder front_face_order = FrontFaceOrder::CounterClockwise;
+  DepthTest depth_test = DepthTest::Always;
+  bool depth_write = false;
+  std::optional<std::array<float, 2>> depth_write_offset = std::nullopt;
+  std::optional<BlendState> color_blend = std::nullopt;
+  std::optional<BlendState> alpha_blend = std::nullopt;
+  std::optional<StencilState> stencil_test = std::nullopt;
+  std::array<bool, 4> color_mask = {true, true, true, true};
+  PrimitiveType primitive_type = PrimitiveType::Triangles;
+};
+
+struct BufferMetaData {
+  uint32_t stride;
+  uint32_t offset;
+};
+
+enum class VertexFormat {
+  Float1,
+  Float2,
+  Float3,
+  Float4,
+  Byte1,
+  Byte2,
+  Byte3,
+  Byte4,
+  Short1,
+  Short2,
+  Short3,
+  Short4,
+  Int1,
+  Int2,
+  Int3,
+  Int4,
+  Mat4,
+};
+
+uint32_t bytes_of(VertexFormat vertex_format) {
+  using enum VertexFormat;
+
+  switch (vertex_format) {
+    case Float1:
+      return 4;
+    case Float2:
+      return 8;
+    case Float3:
+      return 12;
+    case Float4:
+      return 16;
+    case Byte1:
+      return 1;
+    case Byte2:
+      return 2;
+    case Byte3:
+      return 3;
+    case Byte4:
+      return 4;
+    case Short1:
+      return 2;
+    case Short2:
+      return 4;
+    case Short3:
+      return 6;
+    case Short4:
+      return 8;
+    case Int1:
+      return 4;
+    case Int2:
+      return 8;
+    case Int3:
+      return 12;
+    case Int4:
+      return 16;
+    case Mat4:
+      return 64;
+  }
+}
+
+uint32_t components_of(VertexFormat vertex_format) {
+  using enum VertexFormat;
+
+  switch (vertex_format) {
+    case Float1:
+    case Byte1:
+    case Short1:
+    case Int1:
+      return 1;
+
+    case Float2:
+    case Byte2:
+    case Short2:
+    case Int2:
+      return 2;
+
+    case Float3:
+    case Byte3:
+    case Short3:
+    case Int3:
+      return 3;
+
+    case Float4:
+    case Byte4:
+    case Short4:
+    case Int4:
+      return 4;
+
+    case Mat4:
+      return 16;
+  }
+}
+
+struct VertexAttribute {
+  VertexFormat vertex_format;
+  uint32_t buffer_index;
+};
+
+enum class VertexStep {
+  PerVertex,
+  PerInstance,
+};
+
+struct BufferLayout {
+  uint32_t stride = 0;
+  VertexStep step = VertexStep::PerVertex;
+  uint32_t step_rate = 1;
+};
+
+class Pipeline {
+ private:
+  uint32_t vertex_array_id = 0;
+  Shader shader;
+  PipelineOptions pipeline_options;
+  std::vector<BufferMetaData> buffer_meta_data;
+
+  // constexpr const static std::array<BufferLayout, 1> DEFAULT_BUFFER_LAYOUT =
+  // {
+
+  inline static std::array<BufferLayout, 1> DEFAULT_BUFFER_LAYOUT = {{}};
+
+ public:
+  Pipeline(
+      std::span<VertexAttribute> vertex_attributes, Shader&& shader,
+      PipelineOptions pipeline_options = {},
+      std::span<BufferLayout> buffer_layouts = std::span(DEFAULT_BUFFER_LAYOUT))
+      : shader(std::move(shader)) {}
 };
 
 class Window {
