@@ -3,6 +3,8 @@ project(framework)
 add_library(${PROJECT_NAME} 
   shader.cpp
   buffer.cpp
+  pipeline.cpp
+  window.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR})
 

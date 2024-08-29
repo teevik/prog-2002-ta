@@ -1,6 +1,6 @@
 #include "buffer.h"
 
-using framework::Buffer;
+using namespace framework;
 
 Buffer::Buffer(Buffer &&object) noexcept : id(object.id), type(object.type) {
   object.id = 0;
