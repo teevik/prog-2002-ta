@@ -120,12 +120,12 @@ uint32_t attribute_count_of(VertexFormat vertex_format) {
 }
 
 Pipeline::Pipeline(
-  Shader &&moved_shader,
+  std::shared_ptr<Shader> shader,
   std::initializer_list<VertexAttribute> vertex_attributes,
   PipelineOptions pipeline_options,
   std::span<BufferLayout> buffer_layouts
 ) :
-  shader(std::move(moved_shader)),
+  shader(shader),
   pipeline_options(pipeline_options), buffer_meta_data(buffer_layouts.size()) {
   // Calculate stride for each buffer
   for (auto vertex_attribute : vertex_attributes) {
@@ -156,7 +156,7 @@ Pipeline::Pipeline(
     auto buffer = &buffer_meta_data[vertex_attribute.buffer_index];
 
     auto attribute_location =
-      glGetAttribLocation(shader.id, vertex_attribute.name.c_str());
+      glGetAttribLocation(shader->id, vertex_attribute.name.c_str());
 
     if (attribute_location == -1) {
       throw std::runtime_error(
@@ -242,7 +242,7 @@ Pipeline::Pipeline(
 }
 
 Pipeline::Pipeline(Pipeline &&pipeline) noexcept :
-  vertex_array_id(pipeline.vertex_array_id), shader(std::move(pipeline.shader)),
+  vertex_array_id(pipeline.vertex_array_id), shader(pipeline.shader),
   pipeline_options(pipeline.pipeline_options),
   buffer_meta_data(std::move(pipeline.buffer_meta_data)) {
   pipeline.vertex_array_id = 0;
@@ -257,7 +257,7 @@ void Pipeline::bind() const {
 
   auto options = pipeline_options;
 
-  glUseProgram(shader.id);
+  glUseProgram(shader->id);
   glEnable(GL_SCISSOR_TEST);
 
   if (options.depth_write) {
@@ -379,4 +379,18 @@ void Pipeline::bind_buffers(
   }
 
   glVertexArrayElementBuffer(vertex_array_id, index_buffer.id);
+}
+
+void Pipeline::draw(uint32_t elements, uint32_t offset) const {
+  auto options = pipeline_options;
+  // TODO different index types?
+  auto index_type = GL_UNSIGNED_INT;
+  auto index_size = 4;
+
+  glDrawElements(
+    static_cast<GLenum>(options.primitive_type),
+    elements,
+    index_type,
+    reinterpret_cast<void *>(offset * index_size)
+  );
 }

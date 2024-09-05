@@ -20,6 +20,8 @@ find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(glew REQUIRED)
 
+add_compile_definitions(GLM_SWIZZLE)
+
 # Define the output directories for the built archives, libraries, and runtime
 # executables respectively. These settings help in organizing the built files.
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

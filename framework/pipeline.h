@@ -167,14 +167,14 @@ namespace framework {
 
   struct Pipeline {
     uint32_t vertex_array_id = 0;
-    Shader shader;
+    std::shared_ptr<Shader> shader;
     PipelineOptions pipeline_options;
     std::vector<BufferMetaData> buffer_meta_data;
 
     inline static std::array<BufferLayout, 1> DEFAULT_BUFFER_LAYOUT = {{}};
 
     Pipeline(
-      Shader &&moved_shader,
+      std::shared_ptr<Shader> shader,
       std::initializer_list<VertexAttribute> vertex_attributes,
       PipelineOptions pipeline_options = {},
       std::span<BufferLayout> buffer_layouts = std::span(DEFAULT_BUFFER_LAYOUT)
@@ -191,18 +191,6 @@ namespace framework {
       const Buffer &index_buffer
     ) const;
 
-    void draw(uint32_t elements, uint32_t offset = 0) const {
-      auto options = pipeline_options;
-      // TODO different index types?
-      auto index_type = GL_UNSIGNED_INT;
-      auto index_size = 4;
-
-      glDrawElements(
-        static_cast<GLenum>(options.primitive_type),
-        elements,
-        index_type,
-        reinterpret_cast<void *>(offset * index_size)
-      );
-    }
+    void draw(uint32_t elements, uint32_t offset = 0) const;
   };
 }
