@@ -87,6 +87,16 @@ bool Window::get_key(int key) const {
   return glfwGetKey(glfw_window, key);
 }
 
+float Window::time() const {
+  return static_cast<float>(glfwGetTime());
+};
+
+float Window::get_aspect_ratio() const {
+  int width, height;
+  glfwGetWindowSize(glfw_window, &width, &height);
+  return static_cast<float>(width) / static_cast<float>(height);
+}
+
 void Window::clear(Clear to_clear) const {
   uint32_t clear_bits = 0;
 

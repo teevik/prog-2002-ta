@@ -5,10 +5,8 @@
 #include <framework/shader.h>
 #include <framework/window.h>
 #include <glm/glm.hpp>
-#include <glm/gtx/color_space.hpp>
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
 #include <ranges>
 #include <span>
 #include <string>
@@ -22,38 +20,29 @@ namespace views = std::views;
 
 struct Vertex {
   glm::vec2 position;
-  glm::vec3 color;
 };
 
-float repeat(float t, float length) {
-  return glm::clamp(t - glm::floor(t / length) * length, 0.f, length);
-};
+const glm::ivec2 BOARD_TILES = {10, 10};
 
 int main(int argc, char *argv[]) {
   path program_path(argv[0]);
   path program_folder = program_path.parent_path();
   path assets_folder = program_folder / "assets";
 
-  Window window(800, 600, "Lab 1", false);
+  Window window(800, 600, "Lab 2", false);
+
+  auto grid = shapes::grid(BOARD_TILES.x, BOARD_TILES.y);
 
   // clang-format off
-  auto vertices = shapes::triangle.vertices 
-    | views::enumerate
-    | views::transform([](auto x) {
-        auto [index, v] = x;
-        auto red = index % 3 == 0 ? 1.0f : 0.0f;
-        auto green = index % 3 == 1 ? 1.0f : 0.0f;
-        auto blue = index % 3 == 2 ? 1.0f : 0.0f;
-        
-        return Vertex{.position = v.position.xy(), .color={red,green,blue}};
-    })
+  auto vertices = grid.vertices
+    | views::transform([](auto v) { return Vertex{.position = v.position.xy()}; })
     | to<std::vector<Vertex>>();
   // clang-format on
 
-  auto indices = shapes::triangle.indices;
+  auto indices = grid.indices;
 
   Buffer vertex_buffer(
-    BufferType::Vertex, BufferUsage::Dynamic, std::span(vertices)
+    BufferType::Vertex, BufferUsage::Static, std::span(vertices)
   );
   Buffer index_buffer(
     BufferType::Index, BufferUsage::Static, std::span(indices)
@@ -67,33 +56,13 @@ int main(int argc, char *argv[]) {
 
   auto attributes = {
     VertexAttribute{.name = "position", .format = VertexFormat::Float2},
-    VertexAttribute{.name = "color", .format = VertexFormat::Float3},
   };
   Pipeline pipeline(shader, attributes);
 
   while (!window.should_close()) {
-    auto time = window.time();
-
-    auto amount = vertices.size();
-
-    // rainbow based on time, each vertex
-    for (auto const [index, vertex] : views::enumerate(vertices)) {
-      // auto hue = (float)index * (360.f / amount) + time * 50.f;
-
-      vertex.color = glm::rgbColor(glm::vec3{hue, 1.f, 1.f});
-      // auto red = index % 3 == 0 ? 1.0f : 0.0f;
-      // auto green = index % 3 == 1 ? 1.0f : 0.0f;
-      // auto blue = index % 3 == 2 ? 1.0f : 0.0f;
-
-      // vertex.color = {
-      //   (glm::cos(red + (time / 1.f)) + 1.f) / 2.f,
-      //   (glm::cos(green + (time / 1.f)) + 1.f) / 2.f,
-      //   (glm::cos(blue + (time / 1.f)) + 1.f) / 2.f
-      // };
-    }
-    vertex_buffer.updateData(std::span(vertices));
-
     window.begin_default_pass(Clear{.color = array{0.5f, 0.0f, 0.0f, 1.0f}});
+
+    shader->uploadUniformInt2("board_tiles", BOARD_TILES);
 
     pipeline.bind();
     pipeline.bind_buffers({std::ref(vertex_buffer)}, index_buffer);

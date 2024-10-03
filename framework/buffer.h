@@ -23,7 +23,7 @@ namespace framework {
     Buffer(BufferType type, BufferUsage usage, std::span<T> data) : type(type) {
       glGenBuffers(1, &id);
 
-      glBindBuffer(static_cast<GLenum>(type), id);
+      bind();
       glBufferData(
         static_cast<GLenum>(type),
         sizeof(T) * data.size(),
@@ -31,6 +31,13 @@ namespace framework {
         static_cast<GLenum>(usage)
       );
     };
+
+    template <typename T> void updateData(std::span<T> data) {
+      bind();
+      glBufferSubData(
+        static_cast<GLenum>(type), 0, sizeof(T) * data.size(), data.data()
+      );
+    }
 
     // Move constructor
     Buffer(Buffer &&object) noexcept;

@@ -33,9 +33,13 @@ namespace framework::shapes {
 
   // unit grid from centered at origin from -0.5 to 0.5
   Bindings grid(uint32_t rows, uint32_t columns) {
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    // Add 1 since we calculate as if each line is a row or column
+    rows += 1;
+    columns += 1;
 
+    std::vector<Vertex> vertices;
+
+    // Create vertices
     for (uint32_t i = 0; i < rows; i++) {
       for (uint32_t j = 0; j < columns; j++) {
         float x = (j / (columns - 1.0f)) - 0.5f;
@@ -46,12 +50,16 @@ namespace framework::shapes {
       }
     }
 
+    std::vector<uint32_t> indices;
+
+    // Create indices
     for (uint32_t i = 0; i < rows - 1; i++) {
       for (uint32_t j = 0; j < columns - 1; j++) {
-        uint32_t a = (i * columns) + j;
-        uint32_t b = a + 1;
-        uint32_t c = a + columns;
-        uint32_t d = c + 1;
+        auto a = (i * columns) + j;
+        auto b = a + 1;
+        auto c = a + columns;
+        auto d = c + 1;
+
         indices.push_back(a);
         indices.push_back(b);
         indices.push_back(c);

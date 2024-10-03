@@ -4,7 +4,7 @@
 , ninja
 , libGL
 , glfw
-, glew-egl
+, glew
 , glm
 , target
 }:
@@ -21,8 +21,13 @@ clangStdenv.mkDerivation {
   nativeBuildInputs = [ cmake ninja ];
   buildInputs = [
     libGL
-    glfw
-    glew-egl
+    (glfw.overrideAttrs (oldAttrs: {
+      cmakeFlags = oldAttrs.cmakeFlags ++ [
+        "-DGLFW_BUILD_WAYLAND=OFF"
+      ];
+    }))
+
+    glew
     glm
   ];
 

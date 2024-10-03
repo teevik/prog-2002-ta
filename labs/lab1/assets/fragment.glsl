@@ -1,9 +1,11 @@
 #version 430 core
 
-uniform vec4 color;
+in VertexData {
+    vec3 color;
+} vertex_data;
 
-out vec4 out_color;
+out vec4 color;
 
 void main() {
-    out_color = color;
+    color = vec4(vertex_data.color, 1);
 }

@@ -34,6 +34,10 @@ namespace framework {
 
     bool get_key(int key) const;
 
+    float time() const;
+
+    float get_aspect_ratio() const;
+
     void clear(Clear to_clear) const;
 
     void begin_default_pass(optional<Clear> pass_action = optional(Clear{}))

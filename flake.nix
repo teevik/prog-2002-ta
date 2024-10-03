@@ -13,7 +13,7 @@
         makePackages = targets: lib.genAttrs targets (target: package { target = target; });
       in
       {
-        packages = makePackages [ "lab1" ];
+        packages = makePackages [ "lab1" "lab2" "lab3" ];
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -22,7 +22,7 @@
 
             glfw
             glm
-            glew-egl
+            glew
           ];
 
           LD_LIBRARY_PATH = with pkgs;

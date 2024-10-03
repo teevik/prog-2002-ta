@@ -40,4 +40,6 @@ set(GLFW_VULKAN_STATIC OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(framework)
 add_subdirectory(labs/lab1)
+add_subdirectory(labs/lab2)
+add_subdirectory(labs/lab3)
 
