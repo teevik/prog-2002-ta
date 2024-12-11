@@ -1,1 +1,1 @@
-# PROG20002 Graphics Programming
+# PROG2002 Graphics Programming
