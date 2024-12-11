@@ -23,6 +23,7 @@
             glfw
             glm
             glew
+            stb
           ];
 
           LD_LIBRARY_PATH = with pkgs;

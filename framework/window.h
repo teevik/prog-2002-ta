@@ -18,6 +18,12 @@ namespace framework {
     optional<int32_t> stencil = std::nullopt;
   };
 
+  enum class PressType {
+    Press = GLFW_PRESS,
+    Release = GLFW_RELEASE,
+    Repeat = GLFW_REPEAT,
+  };
+
   struct Window {
     GLFWwindow *glfw_window = nullptr;
     int32_t default_framebuffer;
@@ -32,7 +38,7 @@ namespace framework {
 
     bool should_close() const;
 
-    bool get_key(int key) const;
+    PressType get_key(int key) const;
 
     float time() const;
 

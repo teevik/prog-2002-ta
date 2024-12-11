@@ -6,6 +6,7 @@
 , glfw
 , glew
 , glm
+, stb
 , target
 }:
 clangStdenv.mkDerivation {
@@ -29,6 +30,7 @@ clangStdenv.mkDerivation {
 
     glew
     glm
+    stb
   ];
 
   configurePhase = /* bash */ ''

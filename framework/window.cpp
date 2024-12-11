@@ -83,8 +83,8 @@ bool Window::should_close() const {
   return glfwWindowShouldClose(glfw_window);
 }
 
-bool Window::get_key(int key) const {
-  return glfwGetKey(glfw_window, key);
+PressType Window::get_key(int key) const {
+  return static_cast<PressType>(glfwGetKey(glfw_window, key));
 }
 
 float Window::time() const {
